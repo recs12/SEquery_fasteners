@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "0.0.0"
 
 import sys
 import clr
@@ -9,29 +8,27 @@ clr.AddReference("System")
 clr.AddReference("System.Runtime.InteropServices")
 
 import System
-import System.Collections
 import System.Runtime.InteropServices as SRI
+import System.Collections
 from System import Console
+
+from helper import create_query
+from query import CriteriaProperties
+
+from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionIs
+from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionIsNot
+from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionContains
+from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyReference
+from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCustom
+from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCategory
+
 
 # import SolidEdgeAssembly as SEAssembly
 
-from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCategory
-from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCustom
-from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyReference
-from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionContains
-from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionIsNot
-from SolidEdgeAssembly.QueryConditionConstants import seQueryConditionIs
-
-from query import CriteriaProperties
-from helper import create_query
-
-
-def application():
-    return SRI.Marshal.GetActiveObject("SolidEdge.Application")
-
-
-def active_document(application):
-    return application.ActiveDocument
+__project__ = "query_fasteners"
+__author__ = "recs"
+__version__ = "0.0.2"
+__update__ = "2020-11-06"
 
 
 def create_various_queries(asm):
@@ -52,14 +49,16 @@ def create_various_queries(asm):
         seQueryPropertyCustom, "DSC_A", seQueryConditionContains, "ZINC PLATED"
     )
     create_query(
-        asm.Queries, "Hardware [PLATED.ZINC]", [hardware.criterias, zinc.criterias]
+        asm.Queries, "Hardware [PLATED.ZINC]", [
+            hardware.criterias, zinc.criterias]
     )
 
     # Hardware [SS]
     ss = CriteriaProperties(
         seQueryPropertyCustom, "DSC_F", seQueryConditionContains, "SS.3"
     )
-    create_query(asm.Queries, "Hardware [SS]", [hardware.criterias, zinc.criterias])
+    create_query(asm.Queries, "Hardware [SS]", [
+                 hardware.criterias, zinc.criterias])
 
     # Hardware [SS.304]
     ss304 = CriteriaProperties(
@@ -81,12 +80,16 @@ def create_various_queries(asm):
     inch = CriteriaProperties(
         seQueryPropertyCustom, "JDEPRP1", seQueryConditionIsNot, "Metric Fastener"
     )
-    create_query(asm.Queries, "Hardware INCH", [hardware.criterias, inch.criterias])
+    create_query(asm.Queries, "Hardware INCH", [
+                 hardware.criterias, inch.criterias])
 
     # "Hardware METRIC"
-    metric = CriteriaProperties(seQueryPropertyCustom, "JDEPRP1", seQueryConditionContains, "Metric Fastener")
-    not_flat_washer = CriteriaProperties(seQueryPropertyCustom, "CATEGORY_VB", seQueryConditionIsNot, "FLAT WASHER")
-    create_query(asm.Queries, "Hardware METRIC", [hardware.criterias, metric.criterias, not_flat_washer.criterias])
+    metric = CriteriaProperties(
+        seQueryPropertyCustom, "JDEPRP1", seQueryConditionContains, "Metric Fastener")
+    not_flat_washer = CriteriaProperties(
+        seQueryPropertyCustom, "CATEGORY_VB", seQueryConditionIsNot, "FLAT WASHER")
+    create_query(asm.Queries, "Hardware METRIC", [
+                 hardware.criterias, metric.criterias, not_flat_washer.criterias])
 
 
 def stop():
@@ -112,7 +115,11 @@ def remove_all_queries(assembly):
 
 def would_do_like_to_create_or_removeall_queries():
     response = raw_input(
-        """Create queries[Q] or delete[D] all queries? (Press [Q] or [D] to proceed...)"""
+        """
+            [Q] Create queries
+            [D] Delete all queries
+            Press [Q] or [D] to proceed...
+        """
     ).lower()
     choice = {"q": create_various_queries, "d": remove_all_queries}
     return choice.get(response)
@@ -120,7 +127,7 @@ def would_do_like_to_create_or_removeall_queries():
 
 def user_confirmation_to_continue():
     response = raw_input(
-        """Create fasteners/reference queries? (Press y/[Y] to proceed.)"""
+        """Would you like to create fasteners queries in the Select Tools? (Press y/[Y] to proceed.)"""
     )
     if response.lower() in ["y", "yes"]:
         pass
@@ -131,15 +138,17 @@ def user_confirmation_to_continue():
 
 def main():
     try:
-        print(__VERSION__)
         user_confirmation_to_continue()
         answer = would_do_like_to_create_or_removeall_queries()
-        app = application()
-        assembly = active_document(app)
+        application = SRI.Marshal.GetActiveObject("SolidEdge.Application")
+        assembly = application.ActiveDocument
+
         if answer is create_various_queries:
             create_various_queries(assembly)
+
         elif answer is remove_all_queries:
             remove_all_queries(assembly)
+
         else:
             pass
 
@@ -151,6 +160,9 @@ def main():
         stop()
 
 
-
 if __name__ == "__main__":
+    print(
+        "%s\n--author:%s --version:%s --last-update :%s\n"
+        % (__project__, __author__, __version__, __update__)
+    )
     main()
