@@ -27,14 +27,14 @@ from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCategory
 
 __project__ = "query_fasteners"
 __author__ = "recs"
-__version__ = "0.0.2"
-__update__ = "2020-11-06"
+__version__ = "0.0.3"
+__update__ = "2020-11-13"
 
 
-def create_various_queries(asm):
+def create_various_queries(asm, search_subassemblies):
     # asm = application.ActiveDocument
     print("part: %s\n" % asm.Name)
-    assert asm.Type == 3, "This macro only works on .asm"
+    assert asm.Type == 3, "This macro only works on .asm document."
 
     # HARDWARE QUERIES
     # ==================
@@ -50,7 +50,8 @@ def create_various_queries(asm):
     )
     create_query(
         asm.Queries, "Hardware [PLATED.ZINC]", [
-            hardware.criterias, zinc.criterias]
+            hardware.criterias, zinc.criterias],
+            search_subassemblies
     )
 
     # Hardware [SS]
@@ -58,14 +59,15 @@ def create_various_queries(asm):
         seQueryPropertyCustom, "DSC_F", seQueryConditionContains, "SS.3"
     )
     create_query(asm.Queries, "Hardware [SS]", [
-                 hardware.criterias, zinc.criterias])
+                 hardware.criterias, zinc.criterias], 
+                 search_subassemblies)
 
     # Hardware [SS.304]
     ss304 = CriteriaProperties(
         seQueryPropertyCustom, "DSC_F", seQueryConditionContains, "[SS.304]"
     )
     create_query(
-        asm.Queries, "Hardware [SS.304]", [hardware.criterias, ss304.criterias]
+        asm.Queries, "Hardware [SS.304]", [hardware.criterias, ss304.criterias], search_subassemblies
     )
 
     # Hardware [SS.316]
@@ -73,7 +75,7 @@ def create_various_queries(asm):
         seQueryPropertyCustom, "DSC_F", seQueryConditionContains, "[SS.316]"
     )
     create_query(
-        asm.Queries, "Hardware [SS.316]", [hardware.criterias, ss316.criterias]
+        asm.Queries, "Hardware [SS.316]", [hardware.criterias, ss316.criterias], search_subassemblies
     )
 
     # "Hardware INCH"
@@ -81,7 +83,9 @@ def create_various_queries(asm):
         seQueryPropertyCustom, "JDEPRP1", seQueryConditionIsNot, "Metric Fastener"
     )
     create_query(asm.Queries, "Hardware INCH", [
-                 hardware.criterias, inch.criterias])
+                 hardware.criterias, inch.criterias],
+                 search_subassemblies
+                 )
 
     # "Hardware METRIC"
     metric = CriteriaProperties(
@@ -89,7 +93,9 @@ def create_various_queries(asm):
     not_flat_washer = CriteriaProperties(
         seQueryPropertyCustom, "CATEGORY_VB", seQueryConditionIsNot, "FLAT WASHER")
     create_query(asm.Queries, "Hardware METRIC", [
-                 hardware.criterias, metric.criterias, not_flat_washer.criterias])
+                 hardware.criterias, metric.criterias, not_flat_washer.criterias],
+                 search_subassemblies
+                 )
 
 
 def stop():
@@ -113,15 +119,15 @@ def remove_all_queries(assembly):
         print("[DELETED] %s " % query)
 
 
-def would_do_like_to_create_or_removeall_queries():
+def would_do_like_to_create_or_remove_all_queries():
     response = raw_input(
-        """
-            [Q] Create queries
-            [D] Delete all queries
-            Press [Q] or [D] to proceed...
-        """
+    """
+    Press [*] to create queries with all parts even those in the subassemblies.
+    Press [-] to create queries without the parts in the subassemblies.
+    Press [/] to delete all queries.
+    """
     ).lower()
-    choice = {"q": create_various_queries, "d": remove_all_queries}
+    choice = {"*": "create_various_queries_all", "-": "create_various_queries_edited_level", "/": "remove_all_queries"}
     return choice.get(response)
 
 
@@ -139,14 +145,17 @@ def user_confirmation_to_continue():
 def main():
     try:
         user_confirmation_to_continue()
-        answer = would_do_like_to_create_or_removeall_queries()
+        answer = would_do_like_to_create_or_remove_all_queries()
         application = SRI.Marshal.GetActiveObject("SolidEdge.Application")
         assembly = application.ActiveDocument
 
-        if answer is create_various_queries:
-            create_various_queries(assembly)
+        if answer == "create_various_queries_all":
+            create_various_queries(assembly, True)
 
-        elif answer is remove_all_queries:
+        elif answer == "create_various_queries_edited_level":
+            create_various_queries(assembly, False)
+
+        elif answer == "remove_all_queries":
             remove_all_queries(assembly)
 
         else:
