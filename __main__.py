@@ -27,7 +27,7 @@ from SolidEdgeAssembly.QueryPropertyConstants import seQueryPropertyCategory
 
 __project__ = "query_fasteners"
 __author__ = "recs"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __update__ = "2020-11-13"
 
 
@@ -80,10 +80,11 @@ def create_various_queries(asm, search_subassemblies):
 
     # "Hardware INCH"
     inch = CriteriaProperties(
-        seQueryPropertyCustom, "JDEPRP1", seQueryConditionIsNot, "Metric Fastener"
-    )
+        seQueryPropertyCustom, "JDEPRP1", seQueryConditionIsNot, "Metric Fastener")
+    not_flat_washer = CriteriaProperties(
+        seQueryPropertyCustom, "CATEGORY_VB", seQueryConditionIsNot, "FLAT WASHER")
     create_query(asm.Queries, "Hardware INCH", [
-                 hardware.criterias, inch.criterias],
+                 hardware.criterias, inch.criterias, not_flat_washer.criterias],
                  search_subassemblies
                  )
 
